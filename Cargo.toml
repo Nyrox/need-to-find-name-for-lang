@@ -1,0 +1,11 @@
+[package]
+name = "lang-rs-stack"
+version = "0.1.0"
+authors = ["Nyrox <mark.oliver@hotmail.de>"]
+
+[build-dependencies]
+lalrpop="0.15.1"
+
+[dependencies]
+lalrpop-util="0.15.1"
+regex="0.2.1"
