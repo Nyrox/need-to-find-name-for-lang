@@ -9,12 +9,12 @@ pub mod vm_safe;
 
 fn main() {
 	let _result = grammar::AstParser::new()
-		.parse(r"5 + 2").unwrap();
+		.parse(r"5 + 2 + (3 + 4)").unwrap();
 	
 	println!("{:#?}", _result);
 
-	let typed_ast = typecheck::check(_result);
-    let module = vm_safe::codegen::gen(typed_ast);
+	let typed_ast = typecheck::check(&_result);
+	let module = vm_safe::codegen::gen(typed_ast);
 
 	println!("{:?}", module);
 

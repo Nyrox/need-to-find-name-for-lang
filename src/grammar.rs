@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.15.2"
-// sha256: 8dffa5db27e5ae1255641b8f3b5e355f60972c916644b6d76e91717fe75d1fc
+// sha256: a1d83e863c468ac2e01878579c2f8efb024419c7debc3d360acfe1a81deec7d
 use ast;
 #[allow(unused_extern_crates)]
 extern crate lalrpop_util as __lalrpop_util;

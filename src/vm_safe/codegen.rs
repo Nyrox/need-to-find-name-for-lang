@@ -37,13 +37,12 @@ fn gen_expr(module: &mut Module, expr: &TypedExpr) {
             });
         },
         TypedExpr::TypedConstant(c) => {
-            match c {
-                TypedConstant::INTEGER_32(i) => {
-                    module.instructions.push(Instruction::CONST_I32(module.constants.len() as i16));
-					module.constants.push(*i as i64);
-                },
-                _ => panic!("Internal compiler error: Missing Impl")
-            }
+            let instruction = match c.get_type() {
+                Type::INTEGER_32 => Instruction::CONST_I32(module.constants.len() as i16),
+                _ => panic!()
+            };
+            module.instructions.push(instruction);
+            module.constants.push(c.cast_to_register());
         }
     }
 }

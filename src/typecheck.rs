@@ -1,24 +1,30 @@
 use ast::*;
 use typed_ast::*;
 
-pub fn check(ast: Expr) -> TypedExpr {
+pub fn check(ast: &Expr) -> TypedExpr {
 	check_expr(ast)
 }
 
-fn check_expr(expr: Expr) -> TypedExpr {
+fn check_expr(expr: &Expr) -> TypedExpr {
 	match expr {
 		Expr::BinaryOp(l, o, r) => {
-			if l.is_constant() && r.is_constant() {
-				return TypedExpr::TypedBinaryOp(Box::new(TypedBinaryOp {
-					rType: Type::INTEGER_32,
-					left: TypedExpr::TypedConstant(TypedConstant::INTEGER_32(l.unwrap_constant().unwrap_int() as i32)),
-					right: TypedExpr::TypedConstant(TypedConstant::INTEGER_32(r.unwrap_constant().unwrap_int() as i32)),
-					op: o
-				}));
-			}
-			else {
-				panic!();
-			}
+			let left = check_expr(l);
+			let right = check_expr(r);
+			
+			assert!(left.get_type() == right.get_type());
+
+			return TypedExpr::TypedBinaryOp(Box::new(TypedBinaryOp {
+				rType: left.get_type(),
+				left,
+				right,
+				op: *o
+			}));
+		}
+		Expr::Constant(val) => {
+			return match val {
+				Value::Integer(i) => TypedExpr::TypedConstant(Box::new(*i as i32)),
+				Value::Decimal(f) => TypedExpr::TypedConstant(Box::new(*f as f32)),
+			}	
 		}
 		_ => panic!("Internal compiler error: Missing Impl")
 	}
