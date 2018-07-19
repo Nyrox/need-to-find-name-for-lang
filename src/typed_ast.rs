@@ -33,6 +33,7 @@ impl ConstValue for f32 {
 		Type::FLOAT_32
 	}
 	fn cast_to_register(&self) -> i64 {
+		println!("{}", *self);
 		unsafe { transmute::<f32, i32>(*self) as i64 }
 	}
 }
@@ -62,7 +63,8 @@ pub enum TypedStatement {
 pub enum TypedExpr {
     TypedBinaryOp(Box<TypedBinaryOp>),
     TypedConstant(Box<ConstValue>),
-	TypedVarLookup(TypedVar)
+	TypedVarLookup(TypedVar),
+	TypedCast(Box<TypedExpr>, Type),
 }
 
 impl TypedExpr {
@@ -77,7 +79,8 @@ impl TypedExpr {
 		match self {
 			TypedExpr::TypedConstant(c) => c.get_type(),
 			TypedExpr::TypedBinaryOp(op) => op.get_type(),
-			TypedExpr::TypedVarLookup(var) => var.vType
+			TypedExpr::TypedVarLookup(var) => var.vType,
+			TypedExpr::TypedCast(_, t) => *t
 		}
 	}
 }

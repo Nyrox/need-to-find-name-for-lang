@@ -9,7 +9,7 @@ pub mod vm_safe;
 
 fn main() {
 	let _result = grammar::AstParser::new()
-		.parse(r"let x: i32; x = (5 + 2 * 2 * 5) / 3; x = x * 2 - 3;");
+		.parse(r"let x: i32; x = (5 + 2 * 2 * 5) * 3; let y: f32; y = x as f32 / 5.2 - 2.3;");
 	
 
 	let typed_ast = typecheck::check(&_result.unwrap());

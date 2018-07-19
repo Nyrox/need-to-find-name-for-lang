@@ -29,11 +29,21 @@ impl Machine {
 		let mut isp = 0;
 
 		macro_rules! impl_binary_op {
-			($pType: ty, $op: tt) => {
+			($pType: ty, $op: tt) => {{
 				let right: $pType = self.pop();
 				let left: $pType = self.pop();
 				self.push(left $op right);
-			}
+
+				println!("{} $op {} = {}", left, right, left $op right);
+			}}
+		}
+
+		macro_rules! impl_cast {
+			($fr: ty, $to: ty) => {{
+				let val: $fr = self.pop();
+				self.push(val as $to);
+				println!("{} as {}", val, val as $to);
+			}};
 		}
 
 		loop {
@@ -41,6 +51,10 @@ impl Machine {
 				Instruction::CONST_I32(i) => {
 					let c = self.module.constants[i as usize] as i32;
 					self.push::<i32>(c);
+				},
+				Instruction::CONST_F32(i) => {
+					let c = self.get_constant::<f32>(i);
+					self.push(c);
 				}
 				Instruction::VAR_ASSIGN(i) => {
 					self.pop_to_var(i);
@@ -48,10 +62,17 @@ impl Machine {
 				Instruction::VAR_LOOKUP(i) => {
 					self.push_var(i);
 				}
-				Instruction::ADD_I32 => { impl_binary_op!(i32, +); },
-				Instruction::SUB_I32 => { impl_binary_op!(i32, -); },
-				Instruction::DIV_I32 => { impl_binary_op!(i32, /); }
-				Instruction::MUL_I32 => { impl_binary_op!(i32, *); },
+				Instruction::ADD_I32 => { impl_binary_op!(i32, +) },
+				Instruction::SUB_I32 => { impl_binary_op!(i32, -) },
+				Instruction::DIV_I32 => { impl_binary_op!(i32, /) },
+				Instruction::MUL_I32 => { impl_binary_op!(i32, *) },
+				Instruction::ADD_F32 => { impl_binary_op!(f32, +) },
+				Instruction::SUB_F32 => { impl_binary_op!(f32, -) },
+				Instruction::DIV_F32 => { impl_binary_op!(f32, /) },
+				Instruction::MUL_F32 => { impl_binary_op!(f32, *) },
+
+				Instruction::CAST_I32_F32 => { impl_cast!(i32, f32) },
+				Instruction::CAST_F32_I32 => { impl_cast!(f32, i32) },
 				_ => panic!("Missing impl")
 			}
 			isp += 1;
@@ -106,6 +127,15 @@ impl Machine {
 		unsafe {
 			let v = ::std::mem::zeroed::<T>();
 			::std::ptr::copy::<T>(transmute(&self.stack[self.stack_top]), transmute(&v), 1);
+			return v;
+		}
+	}
+
+	pub fn get_constant<T>(&self, i: i16) -> T {
+
+		unsafe {
+			let v = ::std::mem::zeroed::<T>();
+			::std::ptr::copy::<T>(transmute(&self.module.constants[i as usize]), transmute(&v), 1);
 			return v;
 		}
 	}

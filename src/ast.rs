@@ -1,4 +1,4 @@
-use typed_ast;
+use typed_ast::{self, Type};
 
 // We store constants in the largest possible format representable by the VM
 #[derive(Clone, Debug, Copy)]
@@ -29,6 +29,7 @@ pub enum Expr {
     BinaryOp(Box<Expr>, BinaryOp, Box<Expr>),
     Constant(Value),
     VariableLookup(String),
+    Cast(Box<Expr>, Type),
 }
 
 #[derive(Clone, Debug)]

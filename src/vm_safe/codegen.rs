@@ -10,9 +10,19 @@ pub enum Instruction {
     MUL_I32,
     DIV_I32,
 
+    ADD_F32,
+    SUB_F32,
+    MUL_F32,
+    DIV_F32,
+
+    // casts
+    CAST_I32_F32,
+    CAST_F32_I32,
+
     VAR_LOOKUP(i16),
     VAR_ASSIGN(i16),
 	CONST_I32(i16),
+    CONST_F32(i16),
 }
 
 #[derive(Debug, Default)]
@@ -59,12 +69,18 @@ fn gen_expr(module: &mut Module, expr: &TypedExpr) {
                 (BinaryOp::Sub, Type::INTEGER_32) => Instruction::SUB_I32,
                 (BinaryOp::Mul, Type::INTEGER_32) => Instruction::MUL_I32,
                 (BinaryOp::Div, Type::INTEGER_32) => Instruction::DIV_I32,
+                (BinaryOp::Add, Type::FLOAT_32) => Instruction::ADD_F32,
+                (BinaryOp::Sub, Type::FLOAT_32) => Instruction::SUB_F32,
+                (BinaryOp::Mul, Type::FLOAT_32) => Instruction::MUL_F32,
+                (BinaryOp::Div, Type::FLOAT_32) => Instruction::DIV_F32,
+
                 _ => panic!("Internal compiler error: Missing impl")
             });
         },
         TypedExpr::TypedConstant(c) => {
             let instruction = match c.get_type() {
                 Type::INTEGER_32 => Instruction::CONST_I32(module.constants.len() as i16),
+                Type::FLOAT_32 => Instruction::CONST_F32(module.constants.len() as i16),
                 _ => panic!()
             };
             module.instructions.push(instruction);
@@ -72,6 +88,17 @@ fn gen_expr(module: &mut Module, expr: &TypedExpr) {
         },
         TypedExpr::TypedVarLookup(v) => {            
             module.instructions.push(Instruction::VAR_LOOKUP(*module.vars.get(&v.ident).unwrap()));
+        },
+        TypedExpr::TypedCast(expr, cType) => {
+            gen_expr(module, &**expr);
+
+            let instruction = match (expr.get_type(), cType) {
+                (Type::INTEGER_32, Type::FLOAT_32) => Instruction::CAST_I32_F32,
+                (Type::FLOAT_32, Type::INTEGER_32) => Instruction::CAST_F32_I32,
+                _ => panic!("Cast not implemented; {:?} <-> {:?}"),
+            };
+
+            module.instructions.push(instruction);
         }
     }
 }

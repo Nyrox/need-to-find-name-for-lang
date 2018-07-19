@@ -21,10 +21,6 @@ VariableDeclaration: ast::Statement = {
     "let" <l: Ident> ":" <t: Type> ";" => ast::Statement::VarDecl(l, t)
 };
 
-Type: typed_ast::Type = {
-    "i32" => Type::INTEGER_32
-}
-
 Expr: ast::Expr = {
     <l: Expr> "+" <r: Factor> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Add, Box::new(r)),
     <l: Expr> "-" <r: Factor> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Sub, Box::new(r)),
@@ -32,6 +28,7 @@ Expr: ast::Expr = {
 };
 
 Factor: ast::Expr = {
+    <l: Factor> "as" <r: Type> => ast::Expr::Cast(Box::new(l), r),
     <l: Factor> "*" <r: Term> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Mul, Box::new(r)),
     <l: Factor> "/" <r: Term> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Div, Box::new(r)),
     Term,
@@ -52,6 +49,11 @@ match {
 }	
 
 Ident: String = r"\w[\w\d]*" => <>.to_owned();
+
+Type: typed_ast::Type = {
+    "i32" => Type::INTEGER_32,
+    "f32" => Type::FLOAT_32,
+}
 
 ConstantValue: ast::Value = {
     _integer => ast::Value::Integer(<>.parse().unwrap()),

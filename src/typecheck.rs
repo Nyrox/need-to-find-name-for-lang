@@ -77,6 +77,9 @@ fn check_expr(context: &Context, expr: &Expr) -> TypedExpr {
 			let var = context.lookup_ident(id).expect(&format!("Unrecognized identifier {}", id));
 			return TypedExpr::TypedVarLookup(var.clone());
 		},
+		Expr::Cast(e, t) => {
+			return TypedExpr::TypedCast(Box::new(check_expr(context, e)), *t);
+		}
 		_ => panic!("Internal compiler error: Missing Impl")
 	}
 }
