@@ -1,10 +1,29 @@
 use ast;
+use typed_ast::{self, Type};
 
 grammar;
 
-pub Ast: ast::Expr = {
-    Expr
+pub Ast: Vec<ast::Statement> = {
+    Statement+
 };
+
+Statement: ast::Statement = {
+    VariableAssignment,
+    VariableDeclaration,
+    <e: Expr> ";" => ast::Statement::ExpressionStatement(e),
+}
+
+VariableAssignment: ast::Statement = {
+    <l: Ident> "=" <e: Expr> ";" => ast::Statement::VarAssign(l, e)
+}
+
+VariableDeclaration: ast::Statement = {
+    "let" <l: Ident> ":" <t: Type> ";" => ast::Statement::VarDecl(l, t)
+};
+
+Type: typed_ast::Type = {
+    "i32" => Type::INTEGER_32
+}
 
 Expr: ast::Expr = {
     <l: Expr> "+" <r: Factor> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Add, Box::new(r)),
@@ -20,6 +39,7 @@ Factor: ast::Expr = {
 
 Term: ast::Expr = {
     ConstantValue => ast::Expr::Constant(<>),
+    Ident => ast::Expr::VariableLookup(<>),
     "(" <Expr> ")",
 };
 
@@ -30,6 +50,8 @@ match {
 	r"[0-9]+.[0-9]+" => _decimal,
 	_
 }	
+
+Ident: String = r"\w[\w\d]*" => <>.to_owned();
 
 ConstantValue: ast::Value = {
     _integer => ast::Value::Integer(<>.parse().unwrap()),

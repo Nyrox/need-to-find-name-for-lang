@@ -1,10 +1,17 @@
 use ast::*;
 use std::fmt::Debug;
 use std::mem::transmute;
+
 #[derive(Clone, Debug, Copy, Eq, PartialEq)]
 pub enum Type {
     INTEGER_32, INTEGER_64,
     FLOAT_32, FLOAT_64,
+}
+
+#[derive(Clone, Debug)]
+pub struct TypedVar {
+	pub vType: Type,
+	pub ident: String
 }
 
 pub trait ConstValue: Debug {
@@ -45,9 +52,17 @@ impl TypedBinaryOp {
 }
 
 #[derive(Debug)]
+pub enum TypedStatement {
+	VarDecl(TypedVar),
+    VarAssign(TypedVar, TypedExpr),
+    ExpressionStatement(TypedExpr),
+}
+
+#[derive(Debug)]
 pub enum TypedExpr {
     TypedBinaryOp(Box<TypedBinaryOp>),
     TypedConstant(Box<ConstValue>),
+	TypedVarLookup(TypedVar)
 }
 
 impl TypedExpr {
@@ -61,7 +76,8 @@ impl TypedExpr {
 	pub fn get_type(&self) -> Type {
 		match self {
 			TypedExpr::TypedConstant(c) => c.get_type(),
-			TypedExpr::TypedBinaryOp(op) => op.get_type()
+			TypedExpr::TypedBinaryOp(op) => op.get_type(),
+			TypedExpr::TypedVarLookup(var) => var.vType
 		}
 	}
 }
