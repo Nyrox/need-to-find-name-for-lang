@@ -1,7 +1,5 @@
-
-pub mod instruction_set;
-pub mod codegen;
-use self::codegen::{Instruction};
+use repr::{self, linked, instruction_set};
+use repr::instruction_set::Instruction;
 
 use std::mem::transmute;
 
@@ -9,14 +7,14 @@ const STACK_MAX: usize = 256;
 const VAR_TABLE_MAX: usize = 256;
 
 pub struct Machine {
-	module: codegen::Module,
+	module: linked::Module,
 	stack: [i64; STACK_MAX],
 	stack_top: usize,
 	var_table: [i64; VAR_TABLE_MAX],
 }
 
 impl Machine {
-	pub fn new(module: codegen::Module) -> Self {
+	pub fn new(module: linked::Module) -> Self {
 		Machine {
 			module,
 			stack: [0; STACK_MAX],
@@ -26,7 +24,8 @@ impl Machine {
 	}
 
 	pub fn execute(&mut self) {
-		let mut isp = 0;
+		let mut isp = self.module.entry as usize;
+		let len = self.module.instructions.len();
 
 		macro_rules! impl_binary_op {
 			($pType: ty, $op: tt) => {{
@@ -73,10 +72,23 @@ impl Machine {
 
 				Instruction::CAST_I32_F32 => { impl_cast!(i32, f32) },
 				Instruction::CAST_F32_I32 => { impl_cast!(f32, i32) },
-				_ => panic!("Missing impl")
+				Instruction::RETURN => {
+					let ret = self.pop::<i64>();
+					if self.stack_top == 0 { return; }
+					let nIsp = self.pop();
+					isp = nIsp;
+					self.push(ret);
+					continue;
+				},
+				Instruction::CALL(nIsp) => {
+					self.push(isp + 1);
+					isp = nIsp as usize;
+					continue;
+				},
+				_ => panic!("IRE [Missing Impl]: {:?}", self.module.instructions[isp])
 			}
 			isp += 1;
-			if isp == self.module.instructions.len() { break; }
+			if isp >= self.module.instructions.len() { break; }
 		}
 	}
 

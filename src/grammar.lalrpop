@@ -1,42 +1,57 @@
-use ast;
-use typed_ast::{self, Type};
+use repr;
+use repr::untyped;
+use repr::typed;
 
 grammar;
 
-pub Ast: Vec<ast::Statement> = {
-    Statement+
+pub Ast: untyped::Ast = {
+    <TopLevelDecl+> => untyped::Ast { declarations: <> }
 };
 
-Statement: ast::Statement = {
+TopLevelDecl: untyped::TopLevelDeclaration = {
+    FuncDecl
+}
+
+FuncDecl: untyped::TopLevelDeclaration = {
+    "fn" <i: Ident> "(" ")" "->" <t: Type> <b: Block> => untyped::TopLevelDeclaration::FunctionDeclaration(i, b, t)
+}
+
+Block: Vec<untyped::Statement> = {
+    "{" <s: Statement*> "}" => s
+}
+
+Statement: untyped::Statement = {
     VariableAssignment,
     VariableDeclaration,
-    <e: Expr> ";" => ast::Statement::ExpressionStatement(e),
+    <e: Expr> ";" => untyped::Statement::ExpressionStatement(e),
+    "return" <e: Expr> ";" => untyped::Statement::ReturnStatement(e),
 }
 
-VariableAssignment: ast::Statement = {
-    <l: Ident> "=" <e: Expr> ";" => ast::Statement::VarAssign(l, e)
+VariableAssignment: untyped::Statement = {
+    <l: Ident> "=" <e: Expr> ";" => untyped::Statement::VariableAssignment(l, e)
 }
 
-VariableDeclaration: ast::Statement = {
-    "let" <l: Ident> ":" <t: Type> ";" => ast::Statement::VarDecl(l, t)
+VariableDeclaration: untyped::Statement = {
+    "let" <l: Ident> ":" <t: Type> ";" => untyped::Statement::VariableDeclaration(l, t)
 };
 
-Expr: ast::Expr = {
-    <l: Expr> "+" <r: Factor> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Add, Box::new(r)),
-    <l: Expr> "-" <r: Factor> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Sub, Box::new(r)),
+Expr: untyped::Expression = {
+    <l: Expr> "+" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Add, Box::new(r)),
+    <l: Expr> "-" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Sub, Box::new(r)),
     Factor,
 };
 
-Factor: ast::Expr = {
-    <l: Factor> "as" <r: Type> => ast::Expr::Cast(Box::new(l), r),
-    <l: Factor> "*" <r: Term> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Mul, Box::new(r)),
-    <l: Factor> "/" <r: Term> => ast::Expr::BinaryOp(Box::new(l), ast::BinaryOp::Div, Box::new(r)),
+Factor: untyped::Expression = {
+    <l: Factor> "as" <r: Type> => untyped::Expression::Cast(Box::new(l), r),
+    <l: Factor> "*" <r: Term> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Mul, Box::new(r)),
+    <l: Factor> "/" <r: Term> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Div, Box::new(r)),
     Term,
 };
 
-Term: ast::Expr = {
-    ConstantValue => ast::Expr::Constant(<>),
-    Ident => ast::Expr::VariableLookup(<>),
+Term: untyped::Expression = {
+    ConstantValue => untyped::Expression::Constant(<>),
+    Ident => untyped::Expression::VariableLookup(<>),
+    <Ident> "(" ")" => untyped::Expression::FunctionCall(<>),
     "(" <Expr> ")",
 };
 
@@ -50,12 +65,12 @@ match {
 
 Ident: String = r"\w[\w\d]*" => <>.to_owned();
 
-Type: typed_ast::Type = {
-    "i32" => Type::INTEGER_32,
-    "f32" => Type::FLOAT_32,
+Type: repr::Type = {
+    "i32" => repr::Type::INTEGER_32,
+    "f32" => repr::Type::FLOAT_32,
 }
 
-ConstantValue: ast::Value = {
-    _integer => ast::Value::Integer(<>.parse().unwrap()),
-    _decimal => ast::Value::Decimal(<>.parse().unwrap()),
+ConstantValue: repr::Value = {
+    _integer => repr::Value::Integer(<>.parse().unwrap()),
+    _decimal => repr::Value::Decimal(<>.parse().unwrap()),
 };

@@ -1,0 +1,79 @@
+use std::collections::HashMap;
+use repr::{self, Type};
+
+use std::fmt::Debug;
+use std::mem::transmute;
+
+#[derive(Debug, Default)]
+pub struct Ast {
+	pub functions: HashMap<String, FunctionDefintion>,
+	pub idents: HashMap<String, Variable>,
+}
+
+impl Ast {
+	pub fn new() -> Self {
+		Self::default()
+	}
+}
+
+#[derive(Debug)]
+pub struct FunctionDefintion {
+	pub identifier: String,
+	pub statements: Vec<Statement>,
+	pub return_type: Type,
+}
+
+#[derive(Debug)]
+pub enum Statement {
+	VariableAssignment(Variable, Expression),
+	ReturnStatement(Expression),
+}
+
+#[derive(Debug)]
+pub enum Expression {
+	BinaryOperation(Box<Expression>, repr::BinaryOperation, Box<Expression>, repr::Type),
+	Constant(Box<ConstantValue>),
+	FunctionCall(String, Type),
+	VariableLookup(Variable),
+}
+
+impl Expression {
+	pub fn get_type(&self) -> repr::Type {
+		match self {
+			Expression::BinaryOperation(_,_,_, t) => *t,
+			Expression::Constant(c) => c.get_type(),
+			Expression::FunctionCall(_, t) => *t,
+			Expression::VariableLookup(v) => v.v_type,
+		}
+	}
+}
+
+pub trait ConstantValue: Debug {
+	fn get_type(&self) -> Type;
+	fn cast_to_register(&self) -> i64;
+}
+
+impl ConstantValue for i32 {
+	fn get_type(&self) -> Type {
+		Type::INTEGER_32
+	}
+	fn cast_to_register(&self) -> i64 {
+		*self as i64
+	}
+}
+
+impl ConstantValue for f32 {
+	fn get_type(&self) -> Type {
+		Type::FLOAT_32
+	}
+	fn cast_to_register(&self) -> i64 {
+		println!("{}", *self);
+		unsafe { transmute::<f32, i32>(*self) as i64 }
+	}
+}
+
+#[derive(Debug, Clone)]
+pub struct Variable {
+	pub identifier: String,
+	pub v_type: Type,
+}
