@@ -4,6 +4,17 @@ use repr::typed;
 
 grammar;
 
+Comma<T>: Vec<T> = { 
+    <v:(<T> ",")*> <e:T?> => match e { 
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+
 pub Ast: untyped::Ast = {
     <TopLevelDecl+> => untyped::Ast { declarations: <> }
 };
@@ -13,7 +24,7 @@ TopLevelDecl: untyped::TopLevelDeclaration = {
 }
 
 FuncDecl: untyped::TopLevelDeclaration = {
-    "fn" <i: Ident> "(" ")" "->" <t: Type> <b: Block> => untyped::TopLevelDeclaration::FunctionDeclaration(i, b, t)
+    "fn" <i: Ident> "(" <p: Comma<(<Ident> ":" <Type>)>> ")" "->" <t: Type> <b: Block> => untyped::TopLevelDeclaration::FunctionDeclaration(i, b, t, p)
 }
 
 Block: Vec<untyped::Statement> = {
@@ -25,6 +36,7 @@ Statement: untyped::Statement = {
     VariableDeclaration,
     <e: Expr> ";" => untyped::Statement::ExpressionStatement(e),
     "return" <e: Expr> ";" => untyped::Statement::ReturnStatement(e),
+    "print" <e: Expr> ";" => untyped::Statement::PrintStatement(e),
 }
 
 VariableAssignment: untyped::Statement = {
@@ -51,7 +63,7 @@ Factor: untyped::Expression = {
 Term: untyped::Expression = {
     ConstantValue => untyped::Expression::Constant(<>),
     Ident => untyped::Expression::VariableLookup(<>),
-    <Ident> "(" ")" => untyped::Expression::FunctionCall(<>),
+    <i: Ident> "(" <p: Comma<Expr>> ")" => untyped::Expression::FunctionCall(i, p),
     "(" <Expr> ")",
 };
 

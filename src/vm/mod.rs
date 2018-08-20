@@ -11,6 +11,7 @@ pub struct Machine {
 	stack: [i64; STACK_MAX],
 	stack_top: usize,
 	var_table: [i64; VAR_TABLE_MAX],
+	callstack: Vec<usize>,
 }
 
 impl Machine {
@@ -20,6 +21,7 @@ impl Machine {
 			stack: [0; STACK_MAX],
 			stack_top: 0,
 			var_table: [0; STACK_MAX],
+			callstack: Vec::new(),
 		}
 	}
 
@@ -74,21 +76,38 @@ impl Machine {
 				Instruction::CAST_F32_I32 => { impl_cast!(f32, i32) },
 				Instruction::RETURN => {
 					let ret = self.pop::<i64>();
-					if self.stack_top == 0 { return; }
-					let nIsp = self.pop();
-					isp = nIsp;
+					if self.callstack.len() == 0 { return; }
+					let nIsp = self.callstack.pop();
+					isp = nIsp.unwrap();
 					self.push(ret);
 					continue;
 				},
 				Instruction::CALL(nIsp) => {
-					self.push(isp + 1);
+					self.callstack.push(isp + 1);
 					isp = nIsp as usize;
 					continue;
 				},
+				Instruction::POP_STACK => {
+					self.pop::<i64>();
+				},
+				Instruction::PRINT(_type) => {
+					match _type {
+						repr::Type::INTEGER_32 => println!("Runtime Print: {}", self.pop::<i32>()),
+						repr::Type::INTEGER_64 => println!("Runtime Print: {}", self.pop::<i64>()),
+						repr::Type::FLOAT_32 => println!("Runtime Print: {}", self.pop::<f32>()),
+						repr::Type::FLOAT_64 => println!("Runtime Print: {}", self.pop::<f64>()),
+					};
+				}
 				_ => panic!("IRE [Missing Impl]: {:?}", self.module.instructions[isp])
 			}
 			isp += 1;
 			if isp >= self.module.instructions.len() { break; }
+		}
+	}
+
+	pub fn debug_log(&self, what: &str) {
+		if cfg!(debug_assertions) == true {
+
 		}
 	}
 

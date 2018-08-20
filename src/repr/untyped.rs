@@ -1,3 +1,4 @@
+use repr;
 
 #[derive(Debug, Clone)]
 pub struct Ast {
@@ -10,7 +11,7 @@ pub enum Expression {
     Constant(super::Value),
     VariableLookup(String),
     Cast(Box<Expression>, super::Type),
-    FunctionCall(String),
+    FunctionCall(String, Vec<Expression>),
 }
 
 #[derive(Clone, Debug)]
@@ -19,11 +20,12 @@ pub enum Statement {
     VariableAssignment(String, Expression),
     ExpressionStatement(Expression),
     ReturnStatement(Expression),
+    PrintStatement(Expression),
 }
 
 #[derive(Clone, Debug)]
 pub enum TopLevelDeclaration {
-    FunctionDeclaration(String, Vec<Statement>, super::Type)
+    FunctionDeclaration(String, Vec<Statement>, repr::Type, Vec<(String, repr::Type)>)
 }
 
 impl Expression {

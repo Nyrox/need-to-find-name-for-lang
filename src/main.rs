@@ -9,32 +9,30 @@ pub mod repr;
 pub mod passes;
 pub mod vm;
 
+use std::fs;
+use std::io::prelude::*;
+
 extern "cdecl" fn foo(i: i32) {
 	println!("This is a test: {}", i);
 }
 
 fn main() {
-	let untyped_ast = grammar::AstParser::new()
-		.parse(r"
-		fn foo() -> i32 {
-			return 10 / 2;
-		}
+	let mut source = String::new();
+	fs::File::open("examples/scope.nrs")
+		.expect("Failed to open source file")
+		.read_to_string(&mut source);
 
-		fn main() -> i32 {
-			let y: i32;
-			y = foo() + 3;
-			return y * 2;
-		}
-	").expect("Failed to parse grammar.");
+	let untyped_ast = grammar::AstParser::new()
+		.parse(&source).expect("Failed to parse grammar.");
 	
-	println!("{:#?}", untyped_ast);
+	// println!("{:#?}", untyped_ast);
 	let typed_ast = passes::typecheck::pass(untyped_ast);
 	println!("{:#?}", typed_ast);
 	let unlinked = passes::codegen::pass(&typed_ast);
 	println!("{:?}", unlinked);
 	let linked_module = passes::linker::pass(unlinked);
 	println!("{:?}", linked_module);
-	
+
 	let mut vm = vm::Machine::new(linked_module);
 	vm.execute();
 	vm.print_stack();

@@ -12,7 +12,11 @@ pub fn pass(ast: &typed::Ast) -> unlinked::Module {
 
     for (ident, function) in ast.functions.iter() {
         module.symbols.insert(ident.clone(), module.instructions.len() as i16);
-    
+
+        for (i, e) in function.parameters.iter().enumerate() {
+            generate_instruction(&mut module, Instruction::VAR_ASSIGN(i as i16));
+        }
+
         for statement in function.statements.iter() {
             generate_statement(&mut module, statement);
         }
@@ -27,16 +31,22 @@ fn generate_instruction(module: &mut unlinked::Module, instruction: Instruction)
 
 fn generate_statement(module: &mut unlinked::Module, statement: &Statement) {
     match statement {
-        Statement::VariableAssignment(var, expr) => {
+        Statement::VariableAssignment(stack_offset, expr) => {
             generate_expression(module, expr);
 
-            generate_instruction(module, Instruction::VAR_ASSIGN(unsafe { VAR_COUNT }));
-            module.variable_slots.insert(var.identifier.clone(), unsafe { VAR_COUNT });
-            unsafe { VAR_COUNT += 1};
+            generate_instruction(module, Instruction::VAR_ASSIGN(*stack_offset));
         },
         Statement::ReturnStatement(expr) => {
             generate_expression(module, expr);
             generate_instruction(module, Instruction::RETURN);
+        },
+        Statement::ExpressionStatement(expr) => {
+            generate_expression(module, expr);
+            generate_instruction(module, Instruction::POP_STACK);
+        },
+        Statement::PrintStatement(expr) => {
+            generate_expression(module, expr);
+            generate_instruction(module, Instruction::PRINT(expr.get_type()));
         }
         _ => panic!("ICE [Missing Impl]: {:?}", statement)
     }
@@ -69,10 +79,15 @@ fn generate_expression(module: &mut unlinked::Module, expression: &Expression) {
             });
             module.constants.push(constant.cast_to_register());
         },
-        Expression::VariableLookup(v) => {
-            generate_instruction(module, Instruction::VAR_LOOKUP(*module.variable_slots.get(&v.identifier).unwrap()));
+        Expression::VariableLookup(slot, _) => {
+            generate_instruction(module, Instruction::VAR_LOOKUP(*slot));
         },
-        Expression::FunctionCall(ident, return_type) => {
+        Expression::FunctionCall(ident, return_type, params) => {
+            // push arguments
+            for p in params.into_iter().rev() {
+                generate_expression(module, p);
+            }
+
             generate_instruction(module, Instruction::CALL(0));
             module.unresolved_symbols.push((ident.clone(), module.instructions.len() as i16 - 1));
         },

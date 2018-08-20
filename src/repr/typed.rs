@@ -21,20 +21,23 @@ pub struct FunctionDefintion {
 	pub identifier: String,
 	pub statements: Vec<Statement>,
 	pub return_type: Type,
+	pub parameters: Vec<(String, Type)>
 }
 
 #[derive(Debug)]
 pub enum Statement {
-	VariableAssignment(Variable, Expression),
+	VariableAssignment(i16, Expression),
 	ReturnStatement(Expression),
+	ExpressionStatement(Expression),
+	PrintStatement(Expression),
 }
 
 #[derive(Debug)]
 pub enum Expression {
 	BinaryOperation(Box<Expression>, repr::BinaryOperation, Box<Expression>, repr::Type),
 	Constant(Box<ConstantValue>),
-	FunctionCall(String, Type),
-	VariableLookup(Variable),
+	FunctionCall(String, Type, Vec<Expression>),
+	VariableLookup(i16, Type),
 }
 
 impl Expression {
@@ -42,8 +45,8 @@ impl Expression {
 		match self {
 			Expression::BinaryOperation(_,_,_, t) => *t,
 			Expression::Constant(c) => c.get_type(),
-			Expression::FunctionCall(_, t) => *t,
-			Expression::VariableLookup(v) => v.v_type,
+			Expression::FunctionCall(_, t, _) => *t,
+			Expression::VariableLookup(_, t) => *t,
 		}
 	}
 }

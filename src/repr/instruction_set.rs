@@ -1,4 +1,4 @@
-
+use repr;
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -21,6 +21,8 @@ pub enum Instruction {
     VAR_ASSIGN(i16),
 	CONST_I32(i16),
     CONST_F32(i16),
+    POP_STACK,
+    PRINT(repr::Type),
 
     RETURN,
 }

@@ -13,7 +13,6 @@ pub fn pass(mut module: repr::unlinked::Module) -> repr::linked::Module {
     return repr::linked::Module {
         instructions: module.instructions,
         constants: module.constants,
-        variable_slots: module.variable_slots,
         entry: *module.symbols.get("main").expect("no main"),
     };
 }
