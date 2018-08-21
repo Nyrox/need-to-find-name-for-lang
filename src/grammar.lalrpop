@@ -23,12 +23,13 @@ TopLevelDecl: untyped::TopLevelDeclaration = {
     FuncDecl
 }
 
+
 FuncDecl: untyped::TopLevelDeclaration = {
     "fn" <i: Ident> "(" <p: Comma<(<Ident> ":" <Type>)>> ")" "->" <t: Type> <b: Block> => untyped::TopLevelDeclaration::FunctionDeclaration(i, b, t, p)
 }
 
-Block: Vec<untyped::Statement> = {
-    "{" <s: Statement*> "}" => s
+Block: untyped::Block = {
+    "{" <s: Statement*> <e: Expr?> "}" => untyped::Block::new(s, e.map(Box::new))
 }
 
 Statement: untyped::Statement = {
@@ -51,6 +52,7 @@ Expr: untyped::Expression = {
     <l: Expr> "+" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Add, Box::new(r)),
     <l: Expr> "-" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Sub, Box::new(r)),
     Factor,
+    <Block> => untyped::Expression::Block(<>)
 };
 
 Factor: untyped::Expression = {

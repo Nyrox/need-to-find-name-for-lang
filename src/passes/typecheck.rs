@@ -47,33 +47,33 @@ struct Context {
     current_scope: SymbolScope
 }
 
-pub fn pass(untyped_ast: untyped::Ast) -> typed::Ast {
+pub fn pass(mut untyped_ast: untyped::Ast) -> typed::Ast {
     let mut typed_ast = repr::typed::Ast::new();
     let mut context = Context { typed_ast, current_scope: SymbolScope::new() };
 
-    for declaration in untyped_ast.declarations.iter() {
-        check_top_level_declaration(&mut context, declaration);
+    for mut declaration in untyped_ast.declarations.iter_mut() {
+        check_top_level_declaration(&mut context, &mut declaration);
     }
 
     return context.typed_ast;
 }
 
-fn check_top_level_declaration(context: &mut Context, declaration: &untyped::TopLevelDeclaration) {
+fn check_top_level_declaration(context: &mut Context, declaration: &mut untyped::TopLevelDeclaration) {
     match declaration {
         untyped::TopLevelDeclaration::FunctionDeclaration(ident, block, rType, params) => {
             context.current_scope = SymbolScope::new();
-            for (id, _type) in params {
+            for (id, _type) in params.iter() {
                 context.current_scope.add_symbol(id, *_type);
             }            
 
-            let statements: Vec<_> = block.iter().filter_map(|s| check_statement(context, s)).collect();
+            // For functions we implicitly convert return expressions to return statements
+            if let Some(expr) = &block.return_expr {
+                block.statements.push(untyped::Statement::ReturnStatement(*expr.clone()));
+            }
 
-            match &statements[statements.len() - 1] {
-                typed::Statement::ReturnStatement(e) => {
-                    assert!(e.get_type() == *rType, "Return type must match declared")
-                },
-                _ => panic!("Functions must include a return statement")
-            };
+            let statements: Vec<_> = block.statements.iter().filter_map(|s| check_statement(context, s)).collect();
+
+
 
             println!("VarTable {}: {:#?}", ident, context.current_scope);
 
@@ -148,6 +148,12 @@ fn check_expression(context: &mut Context, expression: &untyped::Expression) -> 
         untyped::Expression::VariableLookup(ident) => {
             let var = context.current_scope.find(ident).unwrap();
             return typed::Expression::VariableLookup(var.varstack_offset, var._type);
+        },
+        untyped::Expression::Block(block) => {
+            return typed::Expression::Block(typed::Block {
+                statements: block.statements.iter().filter_map(|s| check_statement(context, s)).collect(),
+                return_expr: block.return_expr.clone().map(|e| Box::new(check_expression(context, &*e))),
+            });
         }
         _ => panic!("ICE: Missing impl: {:?}", expression)
     }

@@ -17,6 +17,12 @@ impl Ast {
 }
 
 #[derive(Debug)]
+pub struct Block {
+    pub statements: Vec<Statement>,
+    pub return_expr: Option<Box<Expression>>,
+}
+
+#[derive(Debug)]
 pub struct FunctionDefintion {
 	pub identifier: String,
 	pub statements: Vec<Statement>,
@@ -38,6 +44,7 @@ pub enum Expression {
 	Constant(Box<ConstantValue>),
 	FunctionCall(String, Type, Vec<Expression>),
 	VariableLookup(i16, Type),
+	Block(Block),
 }
 
 impl Expression {
@@ -47,6 +54,12 @@ impl Expression {
 			Expression::Constant(c) => c.get_type(),
 			Expression::FunctionCall(_, t, _) => *t,
 			Expression::VariableLookup(_, t) => *t,
+			Expression::Block(block) => {
+				if let Some(e) = &block.return_expr {
+					return e.get_type();
+				}
+				return Type::UNIT;
+			}
 		}
 	}
 }

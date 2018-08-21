@@ -91,6 +91,15 @@ fn generate_expression(module: &mut unlinked::Module, expression: &Expression) {
             generate_instruction(module, Instruction::CALL(0));
             module.unresolved_symbols.push((ident.clone(), module.instructions.len() as i16 - 1));
         },
+        Expression::Block(block) => {
+            for s in block.statements.iter() {
+                generate_statement(module, s);
+            }
+
+            if let Some(expr) = &block.return_expr {
+                generate_expression(module, expr);
+            }
+        }
         _ => panic!("ICE [Missing Impl]: {:?}", expression)
     }
 }

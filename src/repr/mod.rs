@@ -21,6 +21,7 @@ pub enum Value {
 
 #[derive(Clone, Debug, Copy, Eq, PartialEq)]
 pub enum Type {
+    UNIT,
     INTEGER_32, INTEGER_64,
     FLOAT_32, FLOAT_64,
 }

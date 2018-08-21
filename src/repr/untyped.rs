@@ -5,6 +5,18 @@ pub struct Ast {
     pub declarations: Vec<TopLevelDeclaration>,
 }
 
+impl Block {
+    pub fn new(s: Vec<Statement>, e: Option<Box<Expression>>) -> Block {
+        Block { statements: s, return_expr: e }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Block {
+    pub statements: Vec<Statement>,
+    pub return_expr: Option<Box<Expression>>,
+}
+
 #[derive(Clone, Debug)]
 pub enum Expression {
     BinaryOperation(Box<Expression>, super::BinaryOperation, Box<Expression>),
@@ -12,6 +24,7 @@ pub enum Expression {
     VariableLookup(String),
     Cast(Box<Expression>, super::Type),
     FunctionCall(String, Vec<Expression>),
+    Block(Block),
 }
 
 #[derive(Clone, Debug)]
@@ -21,11 +34,12 @@ pub enum Statement {
     ExpressionStatement(Expression),
     ReturnStatement(Expression),
     PrintStatement(Expression),
+    BlockStatement(Block),
 }
 
 #[derive(Clone, Debug)]
 pub enum TopLevelDeclaration {
-    FunctionDeclaration(String, Vec<Statement>, repr::Type, Vec<(String, repr::Type)>)
+    FunctionDeclaration(String, Block, repr::Type, Vec<(String, repr::Type)>)
 }
 
 impl Expression {

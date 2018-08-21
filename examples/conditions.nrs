@@ -1,0 +1,18 @@
+
+
+fn foo(b: i32) -> i32 {
+    if b {
+        print 5;
+    }
+
+    if b {
+        print 10;
+    };
+
+    return 0;
+}
+
+fn main() -> i32 {
+    foo(1);
+    return 0;    
+}

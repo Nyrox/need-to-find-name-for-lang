@@ -96,6 +96,7 @@ impl Machine {
 						repr::Type::INTEGER_64 => println!("Runtime Print: {}", self.pop::<i64>()),
 						repr::Type::FLOAT_32 => println!("Runtime Print: {}", self.pop::<f32>()),
 						repr::Type::FLOAT_64 => println!("Runtime Print: {}", self.pop::<f64>()),
+						repr::Type::UNIT => { self.pop::<i64>(); println!("Runtime Print: ()"); },
 					};
 				}
 				_ => panic!("IRE [Missing Impl]: {:?}", self.module.instructions[isp])
