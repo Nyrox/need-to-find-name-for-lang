@@ -18,6 +18,11 @@ fn main () -> i32 {
     debug_print(double(5));
     debug_print(16);
 
+
+    if double(12) > 20 {
+        print double(20);
+    };
+
     print(double(12));
 
     return 0;

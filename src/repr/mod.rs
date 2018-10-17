@@ -11,6 +11,10 @@ pub enum BinaryOperation {
     Sub,
     Mul,
     Div,
+    Less,
+    More,
+    LessEqual,
+    MoreEqual,
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -17,6 +17,12 @@ pub struct Block {
     pub return_expr: Option<Box<Expression>>,
 }
 
+impl Block {
+    pub fn empty() -> Block {
+        Block { statements: Vec::new(), return_expr: None }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum Expression {
     BinaryOperation(Box<Expression>, super::BinaryOperation, Box<Expression>),
@@ -25,6 +31,7 @@ pub enum Expression {
     Cast(Box<Expression>, super::Type),
     FunctionCall(String, Vec<Expression>),
     Block(Block),
+    Conditional(Box<Expression>, Block, Block),
 }
 
 #[derive(Clone, Debug)]

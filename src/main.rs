@@ -20,16 +20,21 @@ fn main() {
 	let mut source = String::new();
 	fs::File::open("examples/scope.nrs")
 		.expect("Failed to open source file")
-		.read_to_string(&mut source);
+		.read_to_string(&mut source).unwrap();
 
 	let untyped_ast = grammar::AstParser::new()
 		.parse(&source).expect("Failed to parse grammar.");
-	
+
 	// println!("{:#?}", untyped_ast);
 	let typed_ast = passes::typecheck::pass(untyped_ast);
 	println!("{:#?}", typed_ast);
 	let unlinked = passes::codegen::pass(&typed_ast);
 	println!("{:?}", unlinked);
+
+	let mut dump_file = fs::File::create("dump.nsm").unwrap();
+	unlinked.dump_assembly(&mut dump_file);
+
+
 	let linked_module = passes::linker::pass(unlinked);
 	println!("{:?}", linked_module);
 

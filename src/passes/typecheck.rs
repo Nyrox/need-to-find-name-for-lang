@@ -117,6 +117,13 @@ fn check_statement(context: &mut Context, statement: &untyped::Statement) -> Opt
     }
 }
 
+fn check_block(context: &mut Context, block: &untyped::Block) -> typed::Block {
+    typed::Block {
+        statements: block.statements.iter().filter_map(|s| check_statement(context, s)).collect(),
+        return_expr: block.return_expr.clone().map(|e| Box::new(check_expression(context, &e.clone()))),
+    }
+}
+
 fn check_expression(context: &mut Context, expression: &untyped::Expression) -> typed::Expression {
     match expression {
         untyped::Expression::BinaryOperation(l, o, r) => {
@@ -154,7 +161,14 @@ fn check_expression(context: &mut Context, expression: &untyped::Expression) -> 
                 statements: block.statements.iter().filter_map(|s| check_statement(context, s)).collect(),
                 return_expr: block.return_expr.clone().map(|e| Box::new(check_expression(context, &*e))),
             });
-        }
+        },
+        untyped::Expression::Conditional(cond, consequent, alternate) => {
+            return typed::Expression::Conditional(
+                Box::new(check_expression(context, &cond.clone())),
+                check_block(context, consequent),
+                check_block(context, alternate),
+            );
+        },
         _ => panic!("ICE: Missing impl: {:?}", expression)
     }
 }

@@ -22,6 +22,15 @@ pub struct Block {
     pub return_expr: Option<Box<Expression>>,
 }
 
+impl Block {
+	pub fn get_type(&self) -> repr::Type {
+		if let Some(e) = &self.return_expr {
+			return e.get_type();
+		}
+		return Type::UNIT;
+	}
+}
+
 #[derive(Debug)]
 pub struct FunctionDefintion {
 	pub identifier: String,
@@ -45,6 +54,7 @@ pub enum Expression {
 	FunctionCall(String, Type, Vec<Expression>),
 	VariableLookup(i16, Type),
 	Block(Block),
+	Conditional(Box<Expression>, Block, Block),
 }
 
 impl Expression {
@@ -54,12 +64,8 @@ impl Expression {
 			Expression::Constant(c) => c.get_type(),
 			Expression::FunctionCall(_, t, _) => *t,
 			Expression::VariableLookup(_, t) => *t,
-			Expression::Block(block) => {
-				if let Some(e) = &block.return_expr {
-					return e.get_type();
-				}
-				return Type::UNIT;
-			}
+			Expression::Block(block) => { block.get_type() },
+			Expression::Conditional(_, c, _) => { c.get_type() }
 		}
 	}
 }

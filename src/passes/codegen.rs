@@ -99,6 +99,9 @@ fn generate_expression(module: &mut unlinked::Module, expression: &Expression) {
             if let Some(expr) = &block.return_expr {
                 generate_expression(module, expr);
             }
+        },
+        Expression::Conditional(cond, consequente, alternate) => {
+
         }
         _ => panic!("ICE [Missing Impl]: {:?}", expression)
     }

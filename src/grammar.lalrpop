@@ -32,6 +32,14 @@ Block: untyped::Block = {
     "{" <s: Statement*> <e: Expr?> "}" => untyped::Block::new(s, e.map(Box::new))
 }
 
+ConditionalExpression: untyped::Expression = {
+    "if" <e: Expr> <b: Block> <alt: ("else" <Block>)?> => { untyped::Expression::Conditional(Box::new(e), b, match alt {
+            Some(bl) => bl,
+            None => untyped::Block::empty()
+        })
+    }
+}
+
 Statement: untyped::Statement = {
     VariableAssignment,
     VariableDeclaration,
@@ -51,8 +59,10 @@ VariableDeclaration: untyped::Statement = {
 Expr: untyped::Expression = {
     <l: Expr> "+" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Add, Box::new(r)),
     <l: Expr> "-" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Sub, Box::new(r)),
+    <l: Expr> ">" <r: Factor> => untyped::Expression::BinaryOperation(Box::new(l), repr::BinaryOperation::Less, Box::new(r)),
     Factor,
-    <Block> => untyped::Expression::Block(<>)
+    <Block> => untyped::Expression::Block(<>),
+    ConditionalExpression,
 };
 
 Factor: untyped::Expression = {
