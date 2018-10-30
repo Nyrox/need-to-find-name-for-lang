@@ -31,7 +31,12 @@ impl Module {
 
         for (i, e) in self.instructions.iter().enumerate() {
             if let Some(symbol) = inverse_symbol_table.get(&(i as i16)) {
-                write!(buffer, "\n{}\n", symbol);
+                if symbol.starts_with("jmp") {
+                    write!(buffer, "{}\n", symbol);
+                }
+                else {
+                    write!(buffer, "\n{}\n", symbol);
+                }
             }
 
             match e {
@@ -39,6 +44,13 @@ impl Module {
                     for (name, index) in self.unresolved_symbols.iter() {
                         if *index == i as i16 {
                             write!(buffer, "\tCALL {}\n", name);
+                        }
+                    }
+                },
+                Instruction::COND_JMP(_) => {
+                    for (name, index) in self.unresolved_symbols.iter() {
+                        if *index == i as i16 {
+                            write!(buffer, "\tCOND_JMP {}\n", name);
                         }
                     }
                 },

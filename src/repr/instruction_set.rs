@@ -6,17 +6,21 @@ pub enum Instruction {
     SUB_I32,
     MUL_I32,
     DIV_I32,
+    LESS_I32,
 
     ADD_F32,
     SUB_F32,
     MUL_F32,
     DIV_F32,
+    LESS_F32,
 
     // casts
     CAST_I32_F32,
     CAST_F32_I32,
 
     CALL(i16),
+    COND_JMP(i16),
+
     VAR_LOOKUP(i16),
     VAR_ASSIGN(i16),
 	CONST_I32(i16),
@@ -25,4 +29,5 @@ pub enum Instruction {
     PRINT(repr::Type),
 
     RETURN,
+    PUSH_VOID,
 }

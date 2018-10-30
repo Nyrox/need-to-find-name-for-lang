@@ -2,6 +2,7 @@
 #![feature(asm)]
 #![feature(nll)]
 
+extern crate rand;
 
 pub mod grammar;
 // pub mod vm_safe;

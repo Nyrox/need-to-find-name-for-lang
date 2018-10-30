@@ -67,6 +67,7 @@ impl Machine {
 				Instruction::SUB_I32 => { impl_binary_op!(i32, -) },
 				Instruction::DIV_I32 => { impl_binary_op!(i32, /) },
 				Instruction::MUL_I32 => { impl_binary_op!(i32, *) },
+				Instruction::LESS_I32 => { impl_binary_op!(i32, <) },
 				Instruction::ADD_F32 => { impl_binary_op!(f32, +) },
 				Instruction::SUB_F32 => { impl_binary_op!(f32, -) },
 				Instruction::DIV_F32 => { impl_binary_op!(f32, /) },
@@ -87,9 +88,17 @@ impl Machine {
 					isp = nIsp as usize;
 					continue;
 				},
+				Instruction::COND_JMP(nIsp) => {
+					if self.pop::<i64>() != 0 {
+						isp = nIsp as usize;
+					}
+				}
 				Instruction::POP_STACK => {
 					self.pop::<i64>();
 				},
+				Instruction::PUSH_VOID => {
+					self.push::<i64>(0);
+				}
 				Instruction::PRINT(_type) => {
 					match _type {
 						repr::Type::INTEGER_32 => println!("Runtime Print: {}", self.pop::<i32>()),
@@ -145,7 +154,7 @@ impl Machine {
 
 	pub fn push<T>(&mut self, val: T) {
 		assert!(::std::mem::size_of::<T>() <= ::std::mem::size_of::<i64>());
-		
+
 		unsafe {
 			::std::ptr::copy::<T>(transmute(&val), transmute(&self.stack[self.stack_top]), 1);
 		}
@@ -153,7 +162,7 @@ impl Machine {
 	}
 
 	pub fn pop<T>(&mut self) -> T {
-		assert!(::std::mem::size_of::<T>() <= ::std::mem::size_of::<i64>());		
+		assert!(::std::mem::size_of::<T>() <= ::std::mem::size_of::<i64>());
 
 		self.stack_top -= 1;
 		unsafe {

@@ -1,10 +1,19 @@
 use repr::{self, unlinked, linked};
+use repr::instruction_set::Instruction;
 
 pub fn pass(mut module: repr::unlinked::Module) -> repr::linked::Module {
     for (label, isp) in module.unresolved_symbols {
         match module.symbols.get(&label) {
             Some(symbol) => {
-                module.instructions[isp as usize] = repr::instruction_set::Instruction::CALL(*symbol);
+                match module.instructions[isp as usize] {
+                    Instruction::CALL(_) => {
+                        module.instructions[isp as usize] = Instruction::CALL(*symbol);
+                    },
+                    Instruction::COND_JMP(_) => {
+                        module.instructions[isp as usize] = Instruction::COND_JMP(*symbol)
+                    }
+                    _ => unimplemented!()
+                }
             }
             None => panic!("Symbol not found in module: {}", label)
         }
