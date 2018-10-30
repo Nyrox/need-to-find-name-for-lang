@@ -89,7 +89,6 @@ impl ConstantValue for f32 {
 		Type::FLOAT_32
 	}
 	fn cast_to_register(&self) -> i64 {
-		println!("{}", *self);
 		unsafe { transmute::<f32, i32>(*self) as i64 }
 	}
 }

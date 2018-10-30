@@ -34,8 +34,6 @@ impl Machine {
 				let right: $pType = self.pop();
 				let left: $pType = self.pop();
 				self.push(left $op right);
-
-				println!("{} $op {} = {}", left, right, left $op right);
 			}}
 		}
 
@@ -43,7 +41,6 @@ impl Machine {
 			($fr: ty, $to: ty) => {{
 				let val: $fr = self.pop();
 				self.push(val as $to);
-				println!("{} as {}", val, val as $to);
 			}};
 		}
 

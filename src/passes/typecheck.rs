@@ -73,10 +73,6 @@ fn check_top_level_declaration(context: &mut Context, declaration: &mut untyped:
 
             let statements: Vec<_> = block.statements.iter().filter_map(|s| check_statement(context, s)).collect();
 
-
-
-            println!("VarTable {}: {:#?}", ident, context.current_scope);
-
             context.typed_ast.functions.insert(ident.clone(), typed::FunctionDefintion {
                 identifier: ident.clone(),
                 statements: statements,
