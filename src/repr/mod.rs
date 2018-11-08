@@ -1,9 +1,8 @@
-pub mod untyped;
+pub mod instruction_set;
+pub mod linked;
 pub mod typed;
 pub mod unlinked;
-pub mod linked;
-pub mod instruction_set;
-
+pub mod untyped;
 
 #[derive(Copy, Clone, Debug)]
 pub enum BinaryOperation {
@@ -26,6 +25,8 @@ pub enum Value {
 #[derive(Clone, Debug, Copy, Eq, PartialEq)]
 pub enum Type {
     UNIT,
-    INTEGER_32, INTEGER_64,
-    FLOAT_32, FLOAT_64,
+    INTEGER_32,
+    INTEGER_64,
+    FLOAT_32,
+    FLOAT_64,
 }

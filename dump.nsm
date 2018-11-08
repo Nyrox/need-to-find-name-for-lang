@@ -1,0 +1,42 @@
+Constant buffer:
+[6, 20, 20, 12, 0, 0, 2]
+
+Variable Slots:
+{}
+
+Instruction block:
+
+
+main
+	CONST_I32(0)
+	CALL double
+	CONST_I32(1)
+	LESS_I32
+	COND_JMP jmp_13827_else
+	CONST_I32(2)
+	CALL double
+	PRINT(INTEGER_32)
+	PUSH_VOID
+jmp_13827_else
+	POP_STACK
+	CONST_I32(3)
+	CALL double
+	PRINT(INTEGER_32)
+	CONST_I32(4)
+	RETURN
+
+debug_print
+	VAR_ASSIGN(0)
+	VAR_LOOKUP(0)
+	PRINT(INTEGER_32)
+	CONST_I32(5)
+	RETURN
+
+double
+	VAR_ASSIGN(0)
+	VAR_LOOKUP(0)
+	CONST_I32(6)
+	MUL_I32
+	VAR_ASSIGN(1)
+	VAR_LOOKUP(1)
+	RETURN

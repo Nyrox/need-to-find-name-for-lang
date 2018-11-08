@@ -10,16 +10,20 @@ pub struct Module {
     // List of symbols that haven't yet been defined
     pub unresolved_symbols: Vec<(String, i16)>,
     // List of symbols this module defines
-    pub symbols: HashMap<String, i16>
+    pub symbols: HashMap<String, i16>,
 }
 
 impl Module {
     pub fn dump_assembly<T>(&self, buffer: &mut T)
-        where T: Write {
-
+    where
+        T: Write,
+    {
         // Invert symbol table
-        let inverse_symbol_table: HashMap<i16, String> =
-            self.symbols.iter().map(|(s, i)| (i.clone(), s.clone())).collect();
+        let inverse_symbol_table: HashMap<i16, String> = self
+            .symbols
+            .iter()
+            .map(|(s, i)| (i.clone(), s.clone()))
+            .collect();
 
         write!(buffer, "Constant buffer:\n");
         write!(buffer, "{:?}\n\n", self.constants);
@@ -33,8 +37,7 @@ impl Module {
             if let Some(symbol) = inverse_symbol_table.get(&(i as i16)) {
                 if symbol.starts_with("jmp") {
                     write!(buffer, "{}\n", symbol);
-                }
-                else {
+                } else {
                     write!(buffer, "\n{}\n", symbol);
                 }
             }
@@ -46,15 +49,17 @@ impl Module {
                             write!(buffer, "\tCALL {}\n", name);
                         }
                     }
-                },
+                }
                 Instruction::COND_JMP(_) => {
                     for (name, index) in self.unresolved_symbols.iter() {
                         if *index == i as i16 {
                             write!(buffer, "\tCOND_JMP {}\n", name);
                         }
                     }
-                },
-                _ => { write!(buffer, "\t{:?}\n", e); }
+                }
+                _ => {
+                    write!(buffer, "\t{:?}\n", e);
+                }
             }
         }
     }

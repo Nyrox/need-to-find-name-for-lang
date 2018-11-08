@@ -7,7 +7,10 @@ pub struct Ast {
 
 impl Block {
     pub fn new(s: Vec<Statement>, e: Option<Box<Expression>>) -> Block {
-        Block { statements: s, return_expr: e }
+        Block {
+            statements: s,
+            return_expr: e,
+        }
     }
 }
 
@@ -19,7 +22,10 @@ pub struct Block {
 
 impl Block {
     pub fn empty() -> Block {
-        Block { statements: Vec::new(), return_expr: None }
+        Block {
+            statements: Vec::new(),
+            return_expr: None,
+        }
     }
 }
 
@@ -46,21 +52,21 @@ pub enum Statement {
 
 #[derive(Clone, Debug)]
 pub enum TopLevelDeclaration {
-    FunctionDeclaration(String, Block, repr::Type, Vec<(String, repr::Type)>)
+    FunctionDeclaration(String, Block, repr::Type, Vec<(String, repr::Type)>),
 }
 
 impl Expression {
     pub fn is_constant(&self) -> bool {
         match self {
             Expression::Constant(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn unwrap_constant(&self) -> super::Value {
         match self {
             Expression::Constant(v) => *v,
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
