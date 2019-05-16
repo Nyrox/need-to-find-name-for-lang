@@ -10,7 +10,7 @@ pub mod statements;
 /// Internal usage only, exposes combine types and the lang_item macro
 #[doc(hidden)]
 mod combine_prelude {
-    use combine;
+	use combine;
     pub use combine::error::{ParseError, ParseResult};
     pub use combine::parser::char::*;
     pub use combine::parser::choice::*;
@@ -31,7 +31,9 @@ mod combine_prelude {
             }
         };
     }
+
     pub use lang_item;
+	pub use boxed_lang_item;
 }
 
 use self::atoms::*;
@@ -56,12 +58,12 @@ pub fn parse_lang(input: &str) -> untyped::Ast {
     let type_annotation = type_annotation().easy_parse(State::new("(  )"));
     let fndecl = top_level_declaration().easy_parse(State::new("fn  foo() -> i64"));
 
-    // println!("{:?}", id);
-    // println!("{:?}", val);
-    // println!("{:?}", type_annotation);
-    // println!("{:?}", fndecl);
+    println!("{:?}", id);
+    println!("{:?}", val);
+    println!("{:?}", type_annotation);
+    println!("{:?}", fndecl);
 
-	// let block = block().easy_parse(State::new("{\n}"));
+	let block = block().easy_parse(State::new("{\n}"));
 
     Ast {
         declarations: Vec::new(),
