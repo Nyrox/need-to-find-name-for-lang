@@ -1,13 +1,13 @@
 use rand;
 
-use repr::{self, BinaryOperation, Type, typed, unlinked, instruction_set};
+use repr::{BinaryOperation, Type, typed, unlinked};
 use repr::typed::{Statement, Expression, Block};
 use repr::instruction_set::Instruction;
 
 /*
 TODO: Implement a smarter variable slot assignment
 */
-static mut VAR_COUNT: i16 = 0;
+// static mut VAR_COUNT: i16 = 0;
 
 pub fn pass(ast: &typed::Ast) -> unlinked::Module {
     let mut module = unlinked::Module::default();
@@ -15,8 +15,8 @@ pub fn pass(ast: &typed::Ast) -> unlinked::Module {
     for (ident, function) in ast.functions.iter() {
         module.symbols.insert(ident.clone(), module.instructions.len() as i16);
 
-        for (i, e) in function.parameters.iter().enumerate() {
-            generate_instruction(&mut module, Instruction::VAR_ASSIGN(i as i16));
+        for (i, _e) in function.parameters.iter().enumerate() {
+            generate_instruction(&mut module, Instruction::VarAssign(i as i16));
         }
 
         for statement in function.statements.iter() {
@@ -36,21 +36,20 @@ fn generate_statement(module: &mut unlinked::Module, statement: &Statement) {
         Statement::VariableAssignment(stack_offset, expr) => {
             generate_expression(module, expr);
 
-            generate_instruction(module, Instruction::VAR_ASSIGN(*stack_offset));
+            generate_instruction(module, Instruction::VarAssign(*stack_offset));
         },
         Statement::ReturnStatement(expr) => {
             generate_expression(module, expr);
-            generate_instruction(module, Instruction::RETURN);
+            generate_instruction(module, Instruction::Return);
         },
         Statement::ExpressionStatement(expr) => {
             generate_expression(module, expr);
-            generate_instruction(module, Instruction::POP_STACK);
+            generate_instruction(module, Instruction::PopStack);
         },
         Statement::PrintStatement(expr) => {
             generate_expression(module, expr);
-            generate_instruction(module, Instruction::PRINT(expr.get_type()));
+            generate_instruction(module, Instruction::Print(expr.get_type()));
         }
-        _ => panic!("ICE [Missing Impl]: {:?}", statement)
     }
 }
 
@@ -61,38 +60,38 @@ fn generate_expression(module: &mut unlinked::Module, expression: &Expression) {
             generate_expression(module, right);
 
             generate_instruction(module, match (op, return_type) {
-                (BinaryOperation::Add, Type::INTEGER_32) => Instruction::ADD_I32,
-                (BinaryOperation::Sub, Type::INTEGER_32) => Instruction::SUB_I32,
-                (BinaryOperation::Mul, Type::INTEGER_32) => Instruction::MUL_I32,
-                (BinaryOperation::Div, Type::INTEGER_32) => Instruction::DIV_I32,
-                (BinaryOperation::Less, Type::INTEGER_32) => Instruction::LESS_I32,
-                (BinaryOperation::Add, Type::FLOAT_32) => Instruction::ADD_F32,
-                (BinaryOperation::Sub, Type::FLOAT_32) => Instruction::SUB_F32,
-                (BinaryOperation::Mul, Type::FLOAT_32) => Instruction::MUL_F32,
-                (BinaryOperation::Div, Type::FLOAT_32) => Instruction::DIV_F32,
-                (BinaryOperation::Less, Type::FLOAT_32) => Instruction::LESS_F32,
+                (BinaryOperation::Add, Type::Integer32) => Instruction::AddI32,
+                (BinaryOperation::Sub, Type::Integer32) => Instruction::SubI32,
+                (BinaryOperation::Mul, Type::Integer32) => Instruction::MulI32,
+                (BinaryOperation::Div, Type::Integer32) => Instruction::DivI32,
+                (BinaryOperation::Less, Type::Integer32) => Instruction::LessI32,
+                (BinaryOperation::Add, Type::Float32) => Instruction::AddF32,
+                (BinaryOperation::Sub, Type::Float32) => Instruction::SubF32,
+                (BinaryOperation::Mul, Type::Float32) => Instruction::MulF32,
+                (BinaryOperation::Div, Type::Float32) => Instruction::DivF32,
+                (BinaryOperation::Less, Type::Float32) => Instruction::LessF32,
 
                 _ => panic!("ICE [Missing impl] for binary op: {:?}", (op, return_type))
             });
         },
         Expression::Constant(constant) => {
             generate_instruction(module, match constant.get_type() {
-                Type::INTEGER_32 => Instruction::CONST_I32(module.constants.len() as i16),
-                Type::FLOAT_32 => Instruction::CONST_F32(module.constants.len() as i16),
+                Type::Integer32 => Instruction::ConstI32(module.constants.len() as i16),
+                Type::Float32 => Instruction::ConstF32(module.constants.len() as i16),
                 _ => panic!()
             });
             module.constants.push(constant.cast_to_register());
         },
         Expression::VariableLookup(slot, _) => {
-            generate_instruction(module, Instruction::VAR_LOOKUP(*slot));
+            generate_instruction(module, Instruction::VarLookup(*slot));
         },
-        Expression::FunctionCall(ident, return_type, params) => {
+        Expression::FunctionCall(ident, _return_type, params) => {
             // push arguments
             for p in params.into_iter().rev() {
                 generate_expression(module, p);
             }
 
-            generate_instruction(module, Instruction::CALL(0));
+            generate_instruction(module, Instruction::Call(0));
             module.unresolved_symbols.push((ident.clone(), module.instructions.len() as i16 - 1));
         },
         Expression::Block(block) => {
@@ -104,7 +103,7 @@ fn generate_expression(module: &mut unlinked::Module, expression: &Expression) {
             let cond_ident = rand::random::<u16>() as i16;
             let cond_ident_fmt = format!("jmp_{}_else", cond_ident);
 
-            generate_instruction(module, Instruction::COND_JMP(0));
+            generate_instruction(module, Instruction::CondJmp(0));
             module.unresolved_symbols.push((cond_ident_fmt.clone(), module.instructions.len() as i16 - 1));
 
             generate_block(module, consequent, true);
@@ -113,7 +112,6 @@ fn generate_expression(module: &mut unlinked::Module, expression: &Expression) {
 
             generate_block(module, alternate, false);
         }
-        _ => panic!("ICE [Missing Impl]: {:?}", expression)
     }
 }
 
@@ -126,6 +124,6 @@ fn generate_block(module: &mut unlinked::Module, block: &Block, force_return: bo
         generate_expression(module, expr);
     }
     else if force_return {
-        generate_instruction(module, Instruction::PUSH_VOID);
+        generate_instruction(module, Instruction::PushVoid);
     }
 }

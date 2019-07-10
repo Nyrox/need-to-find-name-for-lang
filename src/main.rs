@@ -17,7 +17,7 @@ pub mod vm;
 use std::fs;
 use std::io::prelude::*;
 
-extern "cdecl" fn foo(i: i32) {
+extern "cdecl" fn _foo(i: i32) {
 	println!("This is a test: {}", i);
 }
 
@@ -47,7 +47,7 @@ fn main() {
 	println!("Codegen took: {}ms", sw_cg.elapsed_ms());
 
 	let mut dump_file = fs::File::create("dump.nsm").unwrap();
-	unlinked.dump_assembly(&mut dump_file);
+	unlinked.dump_assembly(&mut dump_file).expect("failed to dump asm");
 
 	let sw_ln = Stopwatch::start_new();
 	let linked_module = passes::linker::pass(unlinked);

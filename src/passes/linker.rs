@@ -1,4 +1,4 @@
-use repr::{self, unlinked, linked};
+use repr::{self};
 use repr::instruction_set::Instruction;
 
 pub fn pass(mut module: repr::unlinked::Module) -> repr::linked::Module {
@@ -6,11 +6,11 @@ pub fn pass(mut module: repr::unlinked::Module) -> repr::linked::Module {
         match module.symbols.get(&label) {
             Some(symbol) => {
                 match module.instructions[isp as usize] {
-                    Instruction::CALL(_) => {
-                        module.instructions[isp as usize] = Instruction::CALL(*symbol);
+                    Instruction::Call(_) => {
+                        module.instructions[isp as usize] = Instruction::Call(*symbol);
                     },
-                    Instruction::COND_JMP(_) => {
-                        module.instructions[isp as usize] = Instruction::COND_JMP(*symbol)
+                    Instruction::CondJmp(_) => {
+                        module.instructions[isp as usize] = Instruction::CondJmp(*symbol)
                     }
                     _ => unimplemented!()
                 }

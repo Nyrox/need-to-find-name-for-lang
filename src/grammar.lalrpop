@@ -1,6 +1,5 @@
 use repr;
 use repr::untyped;
-use repr::typed;
 
 grammar;
 
@@ -90,8 +89,8 @@ match {
 Ident: String = r"\w[\w\d]*" => <>.to_owned();
 
 Type: repr::Type = {
-    "i32" => repr::Type::INTEGER_32,
-    "f32" => repr::Type::FLOAT_32,
+    "i32" => repr::Type::Integer32,
+    "f32" => repr::Type::Float32,
 }
 
 ConstantValue: repr::Value = {

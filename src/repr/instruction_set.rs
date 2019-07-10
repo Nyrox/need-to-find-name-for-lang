@@ -2,32 +2,32 @@ use repr;
 
 #[derive(Debug)]
 pub enum Instruction {
-	ADD_I32,
-    SUB_I32,
-    MUL_I32,
-    DIV_I32,
-    LESS_I32,
+	AddI32,
+    SubI32,
+    MulI32,
+    DivI32,
+    LessI32,
 
-    ADD_F32,
-    SUB_F32,
-    MUL_F32,
-    DIV_F32,
-    LESS_F32,
+    AddF32,
+    SubF32,
+    MulF32,
+    DivF32,
+    LessF32,
 
     // casts
-    CAST_I32_F32,
-    CAST_F32_I32,
+    CastI32F32,
+    CastF32I32,
 
-    CALL(i16),
-    COND_JMP(i16),
+    Call(i16),
+    CondJmp(i16),
 
-    VAR_LOOKUP(i16),
-    VAR_ASSIGN(i16),
-	CONST_I32(i16),
-    CONST_F32(i16),
-    POP_STACK,
-    PRINT(repr::Type),
+    VarLookup(i16),
+    VarAssign(i16),
+	ConstI32(i16),
+    ConstF32(i16),
+    PopStack,
+    Print(repr::Type),
 
-    RETURN,
-    PUSH_VOID,
+    Return,
+    PushVoid,
 }

@@ -48,7 +48,7 @@ struct Context {
 }
 
 pub fn pass(mut untyped_ast: untyped::Ast) -> typed::Ast {
-    let mut typed_ast = repr::typed::Ast::new();
+    let typed_ast = repr::typed::Ast::new();
     let mut context = Context { typed_ast, current_scope: SymbolScope::new() };
 
     for mut declaration in untyped_ast.declarations.iter_mut() {
@@ -60,7 +60,7 @@ pub fn pass(mut untyped_ast: untyped::Ast) -> typed::Ast {
 
 fn check_top_level_declaration(context: &mut Context, declaration: &mut untyped::TopLevelDeclaration) {
     match declaration {
-        untyped::TopLevelDeclaration::FunctionDeclaration(ident, block, rType, params) => {
+        untyped::TopLevelDeclaration::FunctionDeclaration(ident, block, r_type, params) => {
             context.current_scope = SymbolScope::new();
             for (id, _type) in params.iter() {
                 context.current_scope.add_symbol(id, *_type);
@@ -76,7 +76,7 @@ fn check_top_level_declaration(context: &mut Context, declaration: &mut untyped:
             context.typed_ast.functions.insert(ident.clone(), typed::FunctionDefintion {
                 identifier: ident.clone(),
                 statements: statements,
-                return_type: *rType,
+                return_type: *r_type,
                 parameters: params.clone()
             });
         }

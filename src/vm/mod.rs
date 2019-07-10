@@ -1,4 +1,4 @@
-use repr::{self, linked, instruction_set};
+use repr::{self, linked};
 use repr::instruction_set::Instruction;
 
 use std::mem::transmute;
@@ -27,7 +27,6 @@ impl Machine {
 
 	pub fn execute(&mut self) {
 		let mut isp = self.module.entry as usize;
-		let len = self.module.instructions.len();
 
 		macro_rules! impl_binary_op {
 			($pType: ty, $op: tt) => {{
@@ -46,63 +45,63 @@ impl Machine {
 
 		loop {
 			match self.module.instructions[isp] {
-				Instruction::CONST_I32(i) => {
+				Instruction::ConstI32(i) => {
 					let c = self.module.constants[i as usize] as i32;
 					self.push::<i32>(c);
 				},
-				Instruction::CONST_F32(i) => {
+				Instruction::ConstF32(i) => {
 					let c = self.get_constant::<f32>(i);
 					self.push(c);
 				}
-				Instruction::VAR_ASSIGN(i) => {
+				Instruction::VarAssign(i) => {
 					self.pop_to_var(i);
 				}
-				Instruction::VAR_LOOKUP(i) => {
+				Instruction::VarLookup(i) => {
 					self.push_var(i);
 				}
-				Instruction::ADD_I32 => { impl_binary_op!(i32, +) },
-				Instruction::SUB_I32 => { impl_binary_op!(i32, -) },
-				Instruction::DIV_I32 => { impl_binary_op!(i32, /) },
-				Instruction::MUL_I32 => { impl_binary_op!(i32, *) },
-				Instruction::LESS_I32 => { impl_binary_op!(i32, <) },
-				Instruction::ADD_F32 => { impl_binary_op!(f32, +) },
-				Instruction::SUB_F32 => { impl_binary_op!(f32, -) },
-				Instruction::DIV_F32 => { impl_binary_op!(f32, /) },
-				Instruction::MUL_F32 => { impl_binary_op!(f32, *) },
+				Instruction::AddI32 => { impl_binary_op!(i32, +) },
+				Instruction::SubI32 => { impl_binary_op!(i32, -) },
+				Instruction::DivI32 => { impl_binary_op!(i32, /) },
+				Instruction::MulI32 => { impl_binary_op!(i32, *) },
+				Instruction::LessI32 => { impl_binary_op!(i32, <) },
+				Instruction::AddF32 => { impl_binary_op!(f32, +) },
+				Instruction::SubF32 => { impl_binary_op!(f32, -) },
+				Instruction::DivF32 => { impl_binary_op!(f32, /) },
+				Instruction::MulF32 => { impl_binary_op!(f32, *) },
 
-				Instruction::CAST_I32_F32 => { impl_cast!(i32, f32) },
-				Instruction::CAST_F32_I32 => { impl_cast!(f32, i32) },
-				Instruction::RETURN => {
+				Instruction::CastI32F32 => { impl_cast!(i32, f32) },
+				Instruction::CastF32I32 => { impl_cast!(f32, i32) },
+				Instruction::Return => {
 					let ret = self.pop::<i64>();
 					if self.callstack.len() == 0 { return; }
-					let nIsp = self.callstack.pop();
-					isp = nIsp.unwrap();
+					let n_isp = self.callstack.pop();
+					isp = n_isp.unwrap();
 					self.push(ret);
 					continue;
 				},
-				Instruction::CALL(nIsp) => {
+				Instruction::Call(n_isp) => {
 					self.callstack.push(isp + 1);
-					isp = nIsp as usize;
+					isp = n_isp as usize;
 					continue;
 				},
-				Instruction::COND_JMP(nIsp) => {
+				Instruction::CondJmp(n_isp) => {
 					if self.pop::<i64>() != 0 {
-						isp = nIsp as usize;
+						isp = n_isp as usize;
 					}
 				}
-				Instruction::POP_STACK => {
+				Instruction::PopStack => {
 					self.pop::<i64>();
 				},
-				Instruction::PUSH_VOID => {
+				Instruction::PushVoid => {
 					self.push::<i64>(0);
 				}
-				Instruction::PRINT(_type) => {
+				Instruction::Print(_type) => {
 					match _type {
-						repr::Type::INTEGER_32 => println!("Runtime Print: {}", self.pop::<i32>()),
-						repr::Type::INTEGER_64 => println!("Runtime Print: {}", self.pop::<i64>()),
-						repr::Type::FLOAT_32 => println!("Runtime Print: {}", self.pop::<f32>()),
-						repr::Type::FLOAT_64 => println!("Runtime Print: {}", self.pop::<f64>()),
-						repr::Type::UNIT => { self.pop::<i64>(); println!("Runtime Print: ()"); },
+						repr::Type::Integer32 => println!("Runtime Print: {}", self.pop::<i32>()),
+						repr::Type::Integer64 => println!("Runtime Print: {}", self.pop::<i64>()),
+						repr::Type::Float32 => println!("Runtime Print: {}", self.pop::<f32>()),
+						repr::Type::Float64 => println!("Runtime Print: {}", self.pop::<f64>()),
+						repr::Type::Unit => { self.pop::<i64>(); println!("Runtime Print: ()"); },
 					};
 				}
 				_ => panic!("IRE [Missing Impl]: {:?}", self.module.instructions[isp])
@@ -112,7 +111,7 @@ impl Machine {
 		}
 	}
 
-	pub fn debug_log(&self, what: &str) {
+	pub fn debug_log(&self, _what: &str) {
 		if cfg!(debug_assertions) == true {
 
 		}

@@ -27,7 +27,7 @@ impl Block {
 		if let Some(e) = &self.return_expr {
 			return e.get_type();
 		}
-		return Type::UNIT;
+		return Type::Unit;
 	}
 }
 
@@ -50,7 +50,7 @@ pub enum Statement {
 #[derive(Debug)]
 pub enum Expression {
 	BinaryOperation(Box<Expression>, repr::BinaryOperation, Box<Expression>, repr::Type),
-	Constant(Box<ConstantValue>),
+	Constant(Box<dyn ConstantValue>),
 	FunctionCall(String, Type, Vec<Expression>),
 	VariableLookup(i16, Type),
 	Block(Block),
@@ -77,7 +77,7 @@ pub trait ConstantValue: Debug {
 
 impl ConstantValue for i32 {
 	fn get_type(&self) -> Type {
-		Type::INTEGER_32
+		Type::Integer32
 	}
 	fn cast_to_register(&self) -> i64 {
 		*self as i64
@@ -86,7 +86,7 @@ impl ConstantValue for i32 {
 
 impl ConstantValue for f32 {
 	fn get_type(&self) -> Type {
-		Type::FLOAT_32
+		Type::Float32
 	}
 	fn cast_to_register(&self) -> i64 {
 		unsafe { transmute::<f32, i32>(*self) as i64 }
