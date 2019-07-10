@@ -14,8 +14,6 @@ lalrpop_mod!(pub grammar);
 pub mod repr;
 pub mod passes;
 pub mod vm;
-pub mod parser;
-
 use std::fs;
 use std::io::prelude::*;
 
